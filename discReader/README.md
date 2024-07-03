@@ -1,2 +1,3 @@
-This file is for the disc eject and disc reading system of the jukebox
+# Disc eject and disc reading system of jukebox
 
+![First Design](images/discInNotch.png)
