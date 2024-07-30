@@ -10,6 +10,13 @@ path = "/home/gabi/FinalRFID/music/"
 #List of RFID card ids
 music_list = [907369626972,390225684907,429139686602]
 reader=SimpleMFRC522()
+
+#button control
+paused=False
+pause=Button(4)
+#mute=Button(16)
+#will add volume and reset buttons/slider in the future
+
 #Shows what songs is currently playing to prevent a double reading 
 currentSong=0
 
@@ -18,7 +25,18 @@ auxC=False
 
 def safe_exit(signum, frame):
     exit(1)
-    
+ 
+#pause button function
+def pauseB(b):
+    if b.is_pressed:
+        print("pressed")
+        if(paused==False):
+            paused=True
+            pygame.mixer.pause()
+        else:
+            paused=False
+            pygame.mixer.unpause()
+ 
 #loops over song list as long as bluetooth and audio jack aren't bein used 
 while (bluetoothC or auxC ==False):
     
@@ -30,7 +48,7 @@ while (bluetoothC or auxC ==False):
                 print("Waiting for record scan...")
                 id= reader.read()[0]
                 print("Card Value is:",id)
-                 
+                pauseB(pause) 
                 if id in music_list:
                     if(id == currentSong) and (pygame.mixer.music.get_busy()):
                         print('hi')
