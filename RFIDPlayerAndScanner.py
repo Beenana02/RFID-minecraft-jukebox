@@ -6,6 +6,7 @@ from mfrc522 import SimpleMFRC522
 import pygame
 from time import sleep
 from gpiozero import Button, RotaryEncoder
+pygame.mixer.init()
 #plan to add an lcd screen in later
 #from rpi_lcd import LCD
 
@@ -31,6 +32,30 @@ def test():
     print("hi")
 #mute=Button(16)
 #will add volume and reset buttons/slider in the future
+#volume
+volumeRotary = RotaryEncoder(18,17)
+vol= 1
+pygame.mixer.music.set_volume(vol)
+def volumeCon():
+    global vol
+    vol += 0.2
+    pygame.mixer.music.set_volume(vol)
+    print(pygame.mixer.music.get_volume())
+def volumeConNega():
+    global vol
+    vol -= 0.2
+    pygame.mixer.music.set_volume(vol)
+    print(pygame.mixer.music.get_volume())
+muteB= Button(27)
+muted = False
+def muted():
+    global muted
+    if muted:
+        pygame.mixer.music.set_volume(0)
+    else:
+        pygame.mixer.music.set_volume(vol)
+    muted = not muted
+    
 
 #Shows what songs is currently playing to prevent a double reading 
 currentSong=0
@@ -43,7 +68,11 @@ def safe_exit(signum, frame):
  
 try:
     button.when_pressed = pausing1
+    muteB.when_pressed = muted
     sleep(0.2)
+    volumeRotary.when_rotated_clockwise = volumeCon
+    volumeRotary.when_rotated_counter_clockwise = volumeConNega
+    
      
     #loops over song list as long as bluetooth and audio jack aren't being used 
     while (bluetoothC or auxC ==False):
