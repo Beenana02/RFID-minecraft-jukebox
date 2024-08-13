@@ -6,14 +6,54 @@ import pygame
 from time import sleep
 from gpiozero import Button, RotaryEncoder
 from subprocess import check_call
+import time
+import Adafruit_GPIO.SPI as SPI
+import Adafruit_SSD1306
+from PIL import Image
+from PIL import ImageDraw
+from PIL import ImageFont
+import subprocess
 pygame.mixer.init()
+currentSong=0
+#lcd WIP
+RST = 0
 
-#plan to add an lcd screen in later
-#from rpi_lcd import LCD
+disp = Adafruit_SSD1306.SSD1306_128_64(rst=RST)
+disp.begin()
+disp.clear()
+disp.display()
+
+width = disp.width
+height = disp.height
+
+image1 = Image.new('1', (width, height))
+
+draw = ImageDraw.Draw(image1)
+draw.rectangle((0,0,width,height), outline=0, fill=0)
+
+padding = -2
+top = padding
+
+bottom = height-padding
+screenTop = 0
+font = ImageFont.load_default()
+disp.clear()
+disp.display()
+draw.text((screenTop, top),"MINECRAFT JUKEBOX" ,  font=font, fill=255)
+draw.text((screenTop, top+8),"built by: Gabi", font=font, fill=255)
+draw.text((screenTop, top+16),str(currentSong),  font=font, fill=255)
+draw.text((screenTop, top+25),"vol=",  font=font, fill=255)
+
+# Display image.
+disp.image(image1)
+disp.display()
+time.sleep(2)
 
 #CHANGE THIS TO YOUR FOLDER WITH MUSIC#
 path = "/home/gabi/FinalRFID/music/"
-
+pygame.mixer.music.load(path + "yo.mp3")
+print('testing')
+pygame.mixer.music.play()
 #List of RFID card ids
 music_list = [907369626972,390225684907,429139686602]
 reader=SimpleMFRC522()
@@ -37,11 +77,16 @@ def volumeCon():
     global vol
     vol += 0.1
     pygame.mixer.music.set_volume(vol)
+    draw.text((screenTop, top+25),"vol="+str(vol*100),  font=font, fill=255)
+    disp.image(image1)
+    disp.display()
 def volumeConNega():
     global vol
     vol -= 0.1
     pygame.mixer.music.set_volume(vol)
-    
+    draw.text((screenTop, top+25),"vol="+str(vol*100),  font=font, fill=255)
+    disp.image(image1)
+    disp.display()
 muteB= Button(27)
 muted = False
 def muted():
