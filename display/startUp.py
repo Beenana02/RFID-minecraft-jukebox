@@ -1,25 +1,21 @@
 #--Beenana02--#
 
 #start up script for RFID jukebox. 
+#currently not working#
 
-import time
-import Adafruit_GPIO.SPI as SPI
-import Adafruit_SSD1306
+
+from pathlib import Path
+from demo_opts import get_device
 from PIL import Image
 
-RST = 0
+splashScreen = Image.open("/home/gabi/FinalRFID/splashscreen.png")
+#device.display(splashScreen)
 
-disp = Adafruit_SSD1306.SSD1306_128_32(rst=RST)
 
-
-#splash screen set up
-disp.begin()
-disp.clear()
-disp.display()
-print('test')
-splashScreen=Image.open('splashscreen.png').resize((disp.width, disp.height), Image.ANTIALIAS).convert('1')
-
-disp.image(splashScreen)
-print('pass')
-disp.display()
+if __name__ == "__main__":
+    try:
+        device = get_device()
+        main()
+    except KeyboardInterrupt:
+        pass
 
