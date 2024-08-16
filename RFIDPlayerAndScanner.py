@@ -7,13 +7,19 @@ from time import sleep
 from gpiozero import Button, RotaryEncoder
 from subprocess import check_call
 import time
+
+import pygame.mixer_music
 from demo_opts import get_device
 from luma.core.render import canvas
 import RPi.GPIO as GPIO
 
 pygame.mixer.init()
 currentSong=0
+songName='N/A'
 menuText = ' '
+
+#Shows what songs is currently playing to prevent a double reading 
+currentSong=0
 
 GPIO.setwarnings(False)
 device = get_device()
@@ -24,7 +30,7 @@ path = "/home/gabi/FinalRFID/music/"
 pygame.mixer.music.load(path + "Ward.mp3")
 pygame.mixer.music.play()
 #List of RFID card ids
-music_list = [907369626972,390225684907,429139686602]
+music_list = [907369626972,390225684907,429139686602,1046718834915,752504806479]
 reader=SimpleMFRC522()
 
 #button control center
@@ -77,8 +83,7 @@ def buttonController():
         volumeRotary.when_rotated_clockwise = volumeCon
         volumeRotary.when_rotated_counter_clockwise = volumeConNega    
         
-#Shows what songs is currently playing to prevent a double reading 
-currentSong=0
+
 
 bluetoothC=False
 auxC=False
@@ -99,7 +104,7 @@ def updateOLED(device,menuText):
         text='Minecraft RFID Jukebox'
         draw.text((0, 0+padding),text,fill="white")
 
-        text='Song= '+ str(currentSong)
+        text='Song= '+ songName
         w, h = getTextSize(text)
         draw.text(((x/2)-w/2, 20), text, fill="white")
 
@@ -110,32 +115,30 @@ def updateOLED(device,menuText):
         w, h = getTextSize(menuText)
         draw.text(((x/2)-w/2, 50), menuText, fill="white")
 
-#def scanDisc():
-    
-#loops over song list as long as bluetooth and audio jack aren't being used    
-while (bluetoothC or auxC ==False): 
-    buttonController()
-    print("Waiting for record scan...")
-    id= reader.read()[0]
-    print(id) 
-    
+def restartMusic():
+    pygame.mixer.music.rewind()
+
+def scanDisc(id):
+    global currentSong
+    global pygame
+    global songName
     if id in music_list:
         if(id == currentSong) and (pygame.mixer.music.get_busy()):
             print('song is already playing')
         elif(id != currentSong):
             if (id==907369626972):
-                pygame.mixer.init()
                 pygame.mixer.music.load(path + "Ward.mp3")
                 print('ward')
                 pygame.mixer.music.set_volume(1.0)
                 pygame.mixer.music.play()
                 currentSong=907369626972
+                songName='Ward'
                 
             elif (id==390225684907):
-                pygame.mixer.init()
                 pygame.mixer.music.load(path + "Stal.mp3")
                 print('stal')
                 currentSong=390225684907
+                songName='Stal'
                 pygame.mixer.music.set_volume(1)
                 pygame.mixer.music.play()
                 
@@ -145,24 +148,52 @@ while (bluetoothC or auxC ==False):
                 print('pigstep')
                 currentSong=429139686602
                 pygame.mixer.music.set_volume(1.0)
-                pygame.mixer.music.play()
-                
+                pygame.mixer.music.play()  
+                songName='PigStep'
             elif (id==1046718834915):
-                import pygame
-                pygame.mixer.init()
-                pygame.mixer.music.load(path + "yo.mp3")
+                pygame.mixer.music.load(path + "Wait.mp3")
                 print('wait')
                 currentSong=1046718834915
                 pygame.mixer.music.set_volume(1.0)
                 pygame.mixer.music.play()
-
-            else:
-                print('not readable disc')
-                print('playing the default mineraft soundtrack')
-                pygame.mixer.init()
-                pygame.mixer.music.load(path + "Cat.mp3")
+                songName='Wait'
+            elif (id==752504806479):
+                pygame.mixer.music.load(path + "Chirp.mp3")
+                print('chirp')
+                currentSong=1046718834915
                 pygame.mixer.music.set_volume(1.0)
                 pygame.mixer.music.play()
-                currentSong=None   
+                songName='Chirp'
+            elif (id==752504806479):
+                pygame.mixer.music.load(path + "Creator.mp3")
+                print('creator')
+                currentSong=1046718834915
+                pygame.mixer.music.set_volume(1.0)
+                pygame.mixer.music.play()
+                songName='Creator'
+        if(pygame.mixer.music.get_busy()== False):
+            restartMusic()
+            print('restarting')
+    else:
+        print('not readable disc')
+        print('playing the default mineraft soundtrack')
+        pygame.mixer.init()
+        pygame.mixer.music.load(path + "Cat.mp3")
+        pygame.mixer.music.set_volume(1.0)
+        pygame.mixer.music.play()
+        currentSong=None
     
-    updateOLED(device,menuText)
+#loops over song list as long as bluetooth and audio jack aren't being used    
+while (bluetoothC or auxC ==False): 
+    try:
+        buttonController()
+        print("Waiting for record scan...")
+        id2= reader.read()[0]
+        print(id2) 
+        scanDisc(id2)
+     
+    
+        updateOLED(device,menuText)
+    finally:
+        GPIO.cleanup()
+
