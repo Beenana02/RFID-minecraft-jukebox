@@ -9,16 +9,16 @@ from subprocess import check_call
 import time
 from demo_opts import get_device
 from luma.core.render import canvas
+import RPi.GPIO as GPIO
 
 pygame.mixer.init()
 currentSong=0
 menuText = ' '
-
+GPIO.setwarnings(False)
 device = get_device()
 #CHANGE THIS TO YOUR FOLDER WITH MUSIC#
 path = "/home/gabi/FinalRFID/music/"
 pygame.mixer.music.load(path + "yo.mp3")
-print('testing')
 pygame.mixer.music.play()
 #List of RFID card ids
 music_list = [907369626972,390225684907,429139686602]
@@ -26,7 +26,7 @@ reader=SimpleMFRC522()
 
 #button control center
 paused=False
-button=Button(22, bounce_time = 1)
+button=Button(22)
 def pausing1():
     global paused
     if paused:
@@ -36,6 +36,7 @@ def pausing1():
         pygame.mixer.music.unpause()
         menuText = ' '
     paused = not paused
+    updateOLED(device,menuText)
     print(paused)
 
 volumeRotary = RotaryEncoder(18,17)
@@ -46,13 +47,13 @@ def volumeCon():
     if vol <1:
         vol += 0.1
         pygame.mixer.music.set_volume(vol)
-        main()
+        updateOLED(device,menuText)
 def volumeConNega():
     global vol
     if vol >0.1:
         vol -= 0.1
         pygame.mixer.music.set_volume(vol)
-        main()
+        updateOLED(device,menuText)
 muteB= Button(27)
 muted = False
 def muted():
@@ -64,19 +65,15 @@ def muted():
         pygame.mixer.music.set_volume(vol)
         menuText = ' '
     muted = not muted
-
-powerOffB = Button(24, hold_time=5)
-
+    updateOLED(device,menuText)
 
 def buttonController():
-    #powerOffB.when_held = shutDown
     if pygame.mixer.music.get_busy():
         button.when_pressed = pausing1
         muteB.when_pressed = muted
         volumeRotary.when_rotated_clockwise = volumeCon
         volumeRotary.when_rotated_counter_clockwise = volumeConNega    
-        main()
-
+        
 
 #Shows what songs is currently playing to prevent a double reading 
 currentSong=0
@@ -93,7 +90,7 @@ def getTextSize(text):
         left, top, right, bottom = draw.textbbox((0, 0), text)
         w, h = right - left, bottom - top
     return w, h
-def updateOLED(device):
+def updateOLED(device,menuText):
     x=device.width
     y=device.height
     with canvas(device) as draw:
@@ -109,11 +106,10 @@ def updateOLED(device):
         draw.text(((x/2)-w/2, 40), text, fill="white")
 
         w, h = getTextSize(menuText)
-        draw.text(((x/2)-w/2, 60), menuText, fill="white")
+        draw.text(((x/2)-w/2, 50), menuText, fill="white")
 
-def main():
-    updateOLED(device)
-def scanDisc(id):
+def scanDisc():
+    id= reader.read()[0]
     print("Card Value is:",id) 
     if id in music_list:
         if(id == currentSong) and (pygame.mixer.music.get_busy()):
@@ -162,13 +158,7 @@ def scanDisc(id):
         currentSong=None   
 #loops over song list as long as bluetooth and audio jack aren't being used     
 while (bluetoothC or auxC ==False): 
-    main()
+    updateOLED(device,menuText)
     buttonController()
     print("Waiting for record scan...")
-    id= reader.read()[0]
-    scanDisc(id)
-    
-
-    
-
-
+    scanDisc()
