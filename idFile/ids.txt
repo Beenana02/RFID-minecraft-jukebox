@@ -1,0 +1,10 @@
+Add your rfid id into this file for the scanner EVEN NUMERS ID ODD NUMBERS FILE NAME (MP3 ONLY)
+907369626972
+Ward.mp3
+390225684907
+Strad.mp3
+429139686602
+Pigstep.mp3
+1046718834915
+Wait.mp3
+752504806479
