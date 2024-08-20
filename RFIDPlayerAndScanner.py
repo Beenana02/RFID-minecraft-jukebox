@@ -30,7 +30,27 @@ path = "/home/gabi/FinalRFID/music/"
 pygame.mixer.music.load(path + "Ward.mp3")
 pygame.mixer.music.play()
 #List of RFID card ids
-music_list = [907369626972,390225684907,429139686602,1046718834915,752504806479]
+#Reads lists of RFID files from ids.txt 
+#Stores a list for rfid ids and for song file names 
+ids=[]
+songs=[]
+with open('ids.txt','r') as f:
+    for i, line in enumerate(f):
+        if i % 2 == 1:
+            if(i != 0):
+                id= line.strip()
+                ids.append(id)
+        elif i % 2 == 0:
+            if(i != 0):
+                song= line.strip()
+                songs.append(song)
+
+print(ids)
+print(songs)
+
+
+
+#music_list = [907369626972,390225684907,429139686602,1046718834915,752504806479]
 reader=SimpleMFRC522()
 
 #button control center
@@ -88,7 +108,6 @@ def buttonController():
 bluetoothC=False
 auxC=False
 
-#lcd WIP
 
 padding = 2
 
@@ -118,14 +137,16 @@ def updateOLED(device,menuText):
 def restartMusic():
     pygame.mixer.music.rewind()
 
+
 def scanDisc(id):
     global currentSong
     global pygame
     global songName
-    if id in music_list:
+    if id in ids:
         if(id == currentSong) and (pygame.mixer.music.get_busy()):
             print('song is already playing')
         elif(id != currentSong):
+
             if (id==907369626972):
                 pygame.mixer.music.load(path + "Ward.mp3")
                 print('ward')
@@ -160,17 +181,10 @@ def scanDisc(id):
             elif (id==752504806479):
                 pygame.mixer.music.load(path + "Chirp.mp3")
                 print('chirp')
-                currentSong=1046718834915
+                currentSong=752504806479
                 pygame.mixer.music.set_volume(1.0)
                 pygame.mixer.music.play()
                 songName='Chirp'
-            elif (id==752504806479):
-                pygame.mixer.music.load(path + "Creator.mp3")
-                print('creator')
-                currentSong=1046718834915
-                pygame.mixer.music.set_volume(1.0)
-                pygame.mixer.music.play()
-                songName='Creator'
         if(pygame.mixer.music.get_busy()== False):
             restartMusic()
             print('restarting')
@@ -191,8 +205,7 @@ while (bluetoothC or auxC ==False):
         id2= reader.read()[0]
         print(id2) 
         scanDisc(id2)
-     
-    
+
         updateOLED(device,menuText)
     finally:
         GPIO.cleanup()
